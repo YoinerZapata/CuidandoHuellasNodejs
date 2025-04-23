@@ -1,22 +1,20 @@
-const exp = require('express');
+const exp = require("express")
+const modeloProducto = require('./src/models/producto.model')
+
 const app = exp();
 
-const Usuario = require('./models/Usuario');
+app.get('/productos', async(req, res)=>{
+  let listaProducto = await modeloProducto.find({});
+  console.log(listaProducto)
+  if (listaProducto){
+      res.json(listaProducto);
+  }else{
+      res.json({"Error": "Hubo un error"})
+  }
 
-app.get('/crear-usuario', async (req, res) => {
-  const nuevo = new Usuario({
-    nombre_completo: "Elena Prueba",
-    ciudad: "Bogotá",
-    telefono: "123456789",
-    correo: "elena@email.com",
-    contraseña: "1234"
-  });
-
-  await nuevo.save();
-  res.send("✅ Usuario creado");
-});
+})
 
 //callback 
-app.listen(7777,()=>{
-    console.log('servidor en linea, puerto 7777')
+app.listen(7171,()=>{
+    console.log('servidor en linea, puerto 7171')
 });
