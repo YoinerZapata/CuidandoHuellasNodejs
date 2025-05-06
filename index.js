@@ -1,6 +1,7 @@
 const exp = require("express")
 const path = require('path');
 const modeloProducto = require('./src/models/producto.model')
+const bodyParser = require("body-parser");
 
 const app = exp();
 
@@ -9,6 +10,15 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 app.use(exp.static(path.join(__dirname, 'public')));
+
+
+app.get('/iniciar_sesion', (req, res) => {
+  res.render('iniciar_sesion', { messages: [] });
+});
+
+app.get('/registrarse', (req,res) =>{
+  res.render('registrarse', {messages: []});
+});
 
 app.get('/', (req, res) => {
     // Si tienes lógica de sesión, pásala aquí:
