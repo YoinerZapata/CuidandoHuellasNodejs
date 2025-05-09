@@ -1,16 +1,20 @@
 const router = require('express').Router();
 const controladorProductos = require('../src/controller/producto.controller')
-const controladorVendedor = require('../src/controller/vendedor.controller')
-
-router.get('/vendedores',controladorVendedor.registrar)
-router.get('/productos',controladorProductos.consultar)
+const controladorUsuario = require('../src/controller/usuario.controller')
 
 
-router.get('/productos', controladorProductos.consultar)
-router.get('/productos', controladorProductos.registrar)
+
+router.get('/productos',controladorProductos.consultar);
+
+
+router.get('/productos', controladorProductos.registrar);
+
+//login
+router.get('/signin', controladorUsuario.renderSignInPage);
+
 
 //Catalogo
-router.get('/productos', controladorProductos.addProductos)
+router.get('/productos', controladorProductos.addProducto);
 
 
 

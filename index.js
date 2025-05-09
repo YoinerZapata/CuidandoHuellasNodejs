@@ -1,7 +1,7 @@
 const exp = require("express")
 const path = require('path');
 const modeloProducto = require('./src/models/producto.model')
-const bodyParser = require("body-parser");
+
 
 const app = exp();
 
@@ -20,6 +20,7 @@ app.get('/registrarse', (req,res) =>{
   res.render('registrarse', {messages: []});
 });
 
+
 app.get('/', (req, res) => {
     // Si tienes lógica de sesión, pásala aquí:
     //   const loggedIn = Boolean(req.session && req.session.pista);
@@ -37,7 +38,6 @@ app.get('/productos', async(req, res)=>{
   }
 
 })
-
 
 
 //callback 
