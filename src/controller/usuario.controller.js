@@ -1,36 +1,73 @@
-const modeloUsuario = require('../models/usuario.model');
-const dbUsuario = require('../data/usuario.data');
+const Usuario = require('../models/usuario.model');
+const bcrypt = require('bcrypt');
 
-exports.loginUser = async (req, res) => {
-    const {correo, contraseña} = req.body;
-    try{
-        if (!correo || !contraseña) return res.render('signin', {error: "Ingrese todos los datos"});
-        const user = await dbUsuario.findOneUser({correo: correo}, {correo: 1, contraseña: 1, rol: 1});
-        if (!user) {
-            return res.render('signin', {error: "Este Usuario no existe"});
-        } else{
-            const passwordIsCorrect = await bcrypt.compare(contraseña, user.contraseña);
-            if (!passwordIsCorrect) {
-                return res.render('signin', {error: "Contraseña Incorrectas"});
-            } else {
-                return res.cookie('user', user._id).redirect('/profile')
+module.exports = {
+    iniciarSesion: async (req, res) => {
+        try {
+            const { correo, contraseña } = req.body;
+            const usuario = await Usuario.findOne({ correo });
+            
+            if (!usuario || !(await bcrypt.compare(contraseña, usuario.contraseña))) {
+                return res.render('iniciar_sesion', {
+                    datos_form: { correo },
+                    messages: [{ type: 'error', text: 'Credenciales inválidas' }]
+                });
             }
-        }
-    } catch (error) {
-        console.error(error);
-        return res.render('500', {
-            error: error,
-        });
-    }
-};
 
-exports.logout = async (req, res) =>{
-    try{
-        return res.clearCookie('user').redirect('/');
-    }catch (error){
-        console.error(error);
-        return res.render('500',{
-            error:error,
-        })
+            req.session.pista = {
+                id: usuario._id,
+                nombre_completo: usuario.nombre_completo,
+                correo: usuario.correo,
+                rol: usuario.rol,
+                foto_perfil: usuario.foto_perfil
+            };
+
+            const redirectPath = usuario.rol === 1 ? '/admin' : '/';
+            res.redirect(redirectPath);
+
+        } catch (error) {
+            console.error('Login error:', error);
+            res.status(500).render('iniciar_sesion', {
+                datos_form: req.body,
+                messages: [{ type: 'error', text: 'Error del servidor' }]
+            });
+        }
+    },
+
+    cerrarSesion: (req, res) => {
+        req.session.destroy(() => {
+            res.redirect('/iniciar_sesion');
+        });
+    },
+
+    registrarUsuario: async (req, res) => {
+        try {
+            const { nombre_completo, correo, contraseña, telefono } = req.body;
+            
+            if (await Usuario.findOne({ correo })) {
+                return res.render('registrarse', {
+                    values: req.body,
+                    messages: [{ type: 'error', text: 'El correo ya existe' }]
+                });
+            }
+
+            const nuevoUsuario = new Usuario({
+                nombre_completo,
+                correo,
+                contraseña,
+                telefono,
+                rol: 2
+            });
+
+            await nuevoUsuario.save();
+            res.redirect('/iniciar_sesion?registro=exitoso');
+
+        } catch (error) {
+            console.error('Register error:', error);
+            res.render('registrarse', {
+                values: req.body,
+                messages: [{ type: 'error', text: 'Error al registrar' }]
+            });
+        }
     }
 };
