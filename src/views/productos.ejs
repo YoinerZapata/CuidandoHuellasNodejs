@@ -1,20 +1,19 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Productos</title>
+    <meta charset="UTF-8">
+    <title>Lista de Productos</title>
 </head>
 <body>
-  <h1>Lista de Productos</h1>
-
-  <% if (listaProductos.length > 0) { %>
+    <h1>Productos Registrados</h1>
     <ul>
-      <% listaProductos.forEach(producto => { %>
-        <li><strong><%= producto.nombre %></strong> - Ref: <%= producto.referencia %> - Precio: $<%= producto.precio %></li>
-      <% }); %>
+        <% productos.forEach(producto => { %>
+            <li>
+                <strong><%= producto.nombre %></strong> - 
+                Ref: <%= producto.referencia %> - 
+                Precio: $<%= producto.precio %>
+            </li>
+        <% }); %>
     </ul>
-  <% } else { %>
-    <p>No hay productos registrados.</p>
-  <% } %>
 </body>
 </html>

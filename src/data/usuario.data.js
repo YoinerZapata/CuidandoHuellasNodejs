@@ -1,11 +1,10 @@
 const modeloUsuario = require('../models/usuario.model');
-const modeloUsurio = require('../models/usuario.model');
 
 
 exports.findOneUser = async (filter, projection) =>{
     try {
-        if (!projection) return await modeloUsurio.findOne(filter);
-        else return await modeloUsurio.findOne(filter,projection);
+        if (!projection) return await modeloUsuario.findOne(filter);
+        else return await modeloUsuario.findOne(filter,projection);
     } catch (error){
         return error;
     }
@@ -20,6 +19,7 @@ exports.findAllUser = async (filter, projection) =>{
         return error;
     }
 }
+
 exports.createUserRecord = async (UserInfo) =>{
     try{
         return modeloUsuario(UserInfo).save();

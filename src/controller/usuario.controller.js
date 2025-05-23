@@ -1,73 +1,87 @@
-const Usuario = require('../models/usuario.model');
+const modeloUsuario = require('../models/usuario.model');
+const dbUsuario = require('../data/usuario.data');
 const bcrypt = require('bcrypt');
 
-module.exports = {
-    iniciarSesion: async (req, res) => {
-        try {
-            const { correo, contraseña } = req.body;
-            const usuario = await Usuario.findOne({ correo });
-            
-            if (!usuario || !(await bcrypt.compare(contraseña, usuario.contraseña))) {
-                return res.render('iniciar_sesion', {
-                    datos_form: { correo },
-                    messages: [{ type: 'error', text: 'Credenciales inválidas' }]
-                });
+exports.loginUser = async (req, res) => {
+    const {correo, contraseña} = req.body;
+    try{
+        if (!correo || !contraseña) return res.render('signin', {error: "Ingrese todos los datos"});
+        const user = await dbUsuario.findOneUser({correo: correo}, {correo: 1, contraseña: 1, rol: 1});
+        if (!user) {
+            return res.render('signin', {error: "Este Usuario no existe"});
+        } else{
+            const passwordIsCorrect = await bcrypt.compare(contraseña, user.contraseña);
+            if (!passwordIsCorrect) {
+                return res.render('signin', {error: "Contraseña Incorrectas"});
+            } else {
+                return res.cookie('user', user._id).redirect('/profile')
             }
-
-            req.session.pista = {
-                id: usuario._id,
-                nombre_completo: usuario.nombre_completo,
-                correo: usuario.correo,
-                rol: usuario.rol,
-                foto_perfil: usuario.foto_perfil
-            };
-
-            const redirectPath = usuario.rol === 1 ? '/admin' : '/';
-            res.redirect(redirectPath);
-
-        } catch (error) {
-            console.error('Login error:', error);
-            res.status(500).render('iniciar_sesion', {
-                datos_form: req.body,
-                messages: [{ type: 'error', text: 'Error del servidor' }]
-            });
         }
-    },
-
-    cerrarSesion: (req, res) => {
-        req.session.destroy(() => {
-            res.redirect('/iniciar_sesion');
+    } catch (error) {
+        console.error(error);
+        return res.render('500', {
+            error: error,
         });
-    },
+    }
+};
 
-    registrarUsuario: async (req, res) => {
-        try {
-            const { nombre_completo, correo, contraseña, telefono } = req.body;
-            
-            if (await Usuario.findOne({ correo })) {
-                return res.render('registrarse', {
-                    values: req.body,
-                    messages: [{ type: 'error', text: 'El correo ya existe' }]
-                });
-            }
+exports.logout = async (req, res) =>{
+    try{
+        return res.clearCookie('user').redirect('/');
+    }catch (error){
+        console.error(error);
+        return res.render('500',{
+            error:error,
+        })
+    }
+};
 
-            const nuevoUsuario = new Usuario({
-                nombre_completo,
-                correo,
-                contraseña,
-                telefono,
-                rol: 2
-            });
+exports.registrarUsuario = async (req, res) => {
+    try {
+        const { nombre_completo, telefono, correo, contraseña, rol } = req.body;
 
-            await nuevoUsuario.save();
-            res.redirect('/iniciar_sesion?registro=exitoso');
-
-        } catch (error) {
-            console.error('Register error:', error);
-            res.render('registrarse', {
-                values: req.body,
-                messages: [{ type: 'error', text: 'Error al registrar' }]
-            });
+        // Validar campos básicos
+        if (!nombre_completo || !telefono || !correo || !contraseña) {
+            return res.status(400).json({ error: 'Todos los campos son obligatorios' });
         }
+
+        console.log('Correo recibido:', correo);
+
+        // Verificar si el usuario ya existe (búsqueda insensible a mayúsculas)
+        const usuarioExistente = await dbUsuario.findOneUser({ correo: { $regex: new RegExp(`^${correo}$`, 'i') } });
+
+        console.log('Usuario encontrado:', usuarioExistente);
+
+        if (usuarioExistente) {
+            return res.status(409).json({ error: 'Este correo ya está registrado' });
+        }
+
+        // Encriptar contraseña
+        const hashedPassword = await bcrypt.hash(contraseña, 10);
+
+        // Crear objeto de usuario
+        const nuevoUsuario = {
+            nombre_completo,
+            telefono,
+            correo,
+            contraseña: hashedPassword,
+            rol: rol || 1 // por defecto es usuario normal
+        };
+
+        // Guardar en la BD
+        const usuarioCreado = await dbUsuario.createUserRecord(nuevoUsuario);
+
+        return res.status(201).json({
+            mensaje: 'Usuario registrado correctamente',
+            usuario: {
+                id: usuarioCreado._id,
+                nombre_completo: usuarioCreado.nombre_completo,
+                correo: usuarioCreado.correo,
+                rol: usuarioCreado.rol
+            }
+        });
+    } catch (error) {
+        console.error('Error en registro:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
     }
 };
