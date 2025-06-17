@@ -3,15 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <title>Lista de Productos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f7f7;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        li {
+            background-color: #fff;
+            margin-bottom: 10px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+
+        li:hover {
+            transform: scale(1.02);
+        }
+
+        li strong {
+            color: #2c3e50;
+        }
+
+        li span {
+            display: block;
+            color: #555;
+        }
+    </style>
 </head>
 <body>
     <h1>Productos Registrados</h1>
     <ul>
         <% productos.forEach(producto => { %>
             <li>
-                <strong><%= producto.nombre %></strong> - 
-                Ref: <%= producto.referencia %> - 
-                Precio: $<%= producto.precio %>
+                <strong><%= producto.nombre %></strong>
+                <span>Ref: <%= producto.referencia %></span>
+                <span>Precio: $<%= producto.precio %></span>
             </li>
         <% }); %>
     </ul>

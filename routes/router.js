@@ -17,6 +17,9 @@ const controladorUsuario = require('../src/controller/usuario.controller')
 router.post('/registrar', controladorUsuario.registrarUsuario);
 
 
+router.post("/iniciar_sesion",controladorUsuario.loginUser)
+
+
 //Catalogo
 //router.get('/productos', controladorProductos.addProducto);
 router.post('/productos', controladorProductos.addProducto); 

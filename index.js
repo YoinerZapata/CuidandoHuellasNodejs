@@ -23,14 +23,18 @@ app.use(route)
 
 // Ruta de inicio de sesión (GET)
 app.get('/iniciar_sesion', (req, res) => {
-  res.render('iniciar_sesion', { messages: [] });
+  res.render('iniciar_sesion', { mensaje: null });
 });
 
 
 app.get('/registrar', (req,res) =>{
-  res.render('registrarse', {messages: []});
+  res.render('registrarse', {mensaje: null});
 });
 
+app.get("/pagina_administrador", (req, res) => {
+  res.render("pagina_administrador");
+});
+    
 
 app.get('/', (req, res) => {
     // Si tienes lógica de sesión, pásala aquí:
