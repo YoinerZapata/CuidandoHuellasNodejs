@@ -23,7 +23,7 @@ exports.loginUser = async (req, res) => {
         }
 
         // Validar rol y redirigir
-        res.cookie('user', user._id); // Guardar cookie con el ID
+        res.cookie('user', user._id); 
 
         if (user.rol === 1) {
             return res.redirect('/pagina_administrador'); // página para Usuarios Normales

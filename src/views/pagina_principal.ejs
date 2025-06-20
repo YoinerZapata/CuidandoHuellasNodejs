@@ -11,6 +11,13 @@
   <title>Cuidando Huellas</title>
 </head>
 <body>
+  <% if (messages && messages.length > 0) { %>
+    <ul>
+      <% messages.forEach(message => { %>
+        <li class="<%= message.type %>"><%= message.text %></li>
+      <% }) %>
+    </ul>
+  <% } %>
   <header class="">
     <div class="p">
       <nav class="nav">

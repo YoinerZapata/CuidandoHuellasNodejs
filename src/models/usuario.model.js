@@ -9,7 +9,8 @@ const schemaUsuario = new mongoose.Schema({
     telefono: {
         type: Number,
         required: [true, 'Por favor ingrese un número de teléfono'],
-        match: [/^[0-9]{10,15}$/, 'Por favor ingrese un número de teléfono válido']
+        match: [/^[0-9]{10,15}$/, 'Por favor ingrese un número de teléfono válido'],
+        default: 1, 
     },
     correo: {
         type: String,
@@ -25,7 +26,7 @@ const schemaUsuario = new mongoose.Schema({
     rol: {
         type: Number,
         enum: [1, 2], // 1 = Administrador, 2 = Usuario normal
-        default: 1
+        default: 2
     },
 });
 
