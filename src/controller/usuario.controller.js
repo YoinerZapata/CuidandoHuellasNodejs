@@ -1,6 +1,7 @@
 const modeloUsuario = require('../models/usuario.model');
 const dbUsuario = require('../data/usuario.data');
 const bcrypt = require('bcrypt');
+const nodemailer = require("nodemailer");
 
 exports.loginUser = async (req, res) => {
     const { correo, contraseña } = req.body;
@@ -50,52 +51,84 @@ exports.logout = async (req, res) =>{
     }
 };
 
+
 exports.registrarUsuario = async (req, res) => {
     try {
         const { nombre_completo, telefono, correo, contraseña, rol } = req.body;
+        const rolDefinido = rol || 1;
 
-        // Validar campos básicos
-        if (!nombre_completo || !telefono || !correo || !contraseña) {
-            return res.status(400).json({ error: 'Todos los campos son obligatorios' });
+        if (!nombre_completo || !ciudad || !telefono || !correo || !contraseña || !confirmar_contraseña) {
+            return res.render("registrarse", {
+                mensaje: "Todos los campos son obligatorios",
+                error: null
+            });
         }
 
-        console.log('Correo recibido:', correo);
+        if (contraseña !== confirmar_contraseña) {
+            return res.render("registrarse", {
+                mensaje: "Las contraseñas no coinciden",
+                error: null
+            });
+        }
 
-        // Verificar si el usuario ya existe (búsqueda insensible a mayúsculas)
-        const usuarioExistente = await dbUsuario.findOneUser({ correo: { $regex: new RegExp(`^${correo}$`, 'i') } });
-
-        console.log('Usuario encontrado:', usuarioExistente);
-
+        const usuarioExistente = await dbUsuario.findOneUser({ correo });
         if (usuarioExistente) {
-            return res.status(409).json({ error: 'Este correo ya está registrado' });
+            return res.render("registrarse", {
+                mensaje: "El correo ya está registrado",
+                error: null
+            });
         }
 
-        // Encriptar contraseña
-        const hashedPassword = await bcrypt.hash(contraseña, 10);
+        const salt = await bcrypt.genSalt(10);
+        const contraseñaHash = await bcrypt.hash(contraseña, salt);
 
-        // Crear objeto de usuario
         const nuevoUsuario = {
             nombre_completo,
+            ciudad,
             telefono,
             correo,
-            contraseña: hashedPassword,
-            rol: rol || 1 // por defecto es usuario normal
+            contraseña: contraseñaHash,
+            rol: rolDefinido
         };
 
-        // Guardar en la BD
-        const usuarioCreado = await dbUsuario.createUserRecord(nuevoUsuario);
+        await dbUsuario.createUserRecord(nuevoUsuario);
 
-        return res.status(201).json({
-            mensaje: 'Usuario registrado correctamente',
-            usuario: {
-                id: usuarioCreado._id,
-                nombre_completo: usuarioCreado.nombre_completo,
-                correo: usuarioCreado.correo,
-                rol: usuarioCreado.rol
-            }
+        // Intentar enviar el correo electrónico
+        try {
+            const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: process.env.EMAIL_USER,
+                    pass: process.env.EMAIL_PASS
+                }
+            });
+
+            const mailOptions = {
+                from: process.env.EMAIL_USER,
+                to: correo,
+                subject: "Bienvenido a Cuidando Huellas",
+                text: `Hola ${nombre_completo}, ¡gracias por registrarte, Disfruta de todos nuestros servicios.!`
+            };
+
+            await transporter.sendMail(mailOptions);
+        } catch (emailError) {
+            console.error("Error al enviar correo:", emailError);
+            return res.render("registrarse", {
+                mensaje: "Registro exitoso, pero no se pudo enviar el correo de bienvenida.",
+                error: null
+            });
+        }
+
+        return res.render("registrarse", {
+            mensaje: "¡Registro exitoso! Ahora puedes iniciar sesión.",
+            error: null
         });
+
     } catch (error) {
-        console.error('Error en registro:', error);
-        return res.status(500).json({ error: 'Error interno del servidor' });
+        console.error("Error en registro:", error);
+        return res.render("registrarse", {
+            mensaje: "Error interno al registrar usuario.",
+            error: null
+        });
     }
 };

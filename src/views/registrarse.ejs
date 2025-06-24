@@ -13,6 +13,13 @@
 
   <body>
    
+  <div id="notificaciones">
+    <% if (mensaje) { %>
+        <div class="alert alert-info text-center show">
+            <%= mensaje %>
+        </div>
+    <% } %>
+  </div>
     <main class="ogin-container text-center d-flex justify-content-center align-items-center vh-100">
       <div class="container-lg">
         <div class="row no-gutter">
@@ -120,6 +127,24 @@
         </div>
       </div>
     </main>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+          if (navigator.geolocation) {
+              navigator.geolocation.getCurrentPosition(
+                  (position) => {
+                      console.log("Ubicación guardada:", position.coords);
+                      alert("Ubicación guardada correctamente.");
+                  },
+                  (error) => {
+                      console.error("Error al obtener ubicación:", error);
+                      alert("No se pudo obtener la ubicación.");
+                  }
+              );
+          } else {
+              alert("La geolocalización no está soportada en este navegador.");
+          }
+      });
+  </script>
     <script src="js/mostrar_contraseña.js"></script>
     <script src="js/bootstrap.bundle.min.js"></script>
     <script src="js/bootstrap.bundle.min.js.map"></script>
